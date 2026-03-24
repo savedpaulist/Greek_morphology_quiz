@@ -5,22 +5,29 @@ mod models;
 mod paradigm;
 mod quiz;
 
-#[cfg(not(target_os = "android"))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))]
 use dioxus_desktop::{Config, tao::window::Icon};
+
+#[cfg(target_arch = "wasm32")]
+fn main() {
+    dioxus::launch(app::app_root);
+}
 
 #[cfg(target_os = "android")]
 fn main() {
-    dioxus::LaunchBuilder::mobile().launch(app::app_root);
+    dioxus_desktop::launch::launch(app::app_root, vec![], vec![]);
 }
 
-#[cfg(not(target_os = "android"))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))]
 fn main() {
-    dioxus::LaunchBuilder::desktop()
-        .with_cfg(Config::new().with_icon(load_desktop_icon()))
-        .launch(app::app_root);
+    dioxus_desktop::launch::launch(
+        app::app_root,
+        vec![],
+        vec![Box::new(Config::new().with_icon(load_desktop_icon()))],
+    );
 }
 
-#[cfg(not(target_os = "android"))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))]
 fn load_desktop_icon() -> Icon {
     let png_bytes = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/icons/dioxus/assets/icon-512.png"));
     let image = image::load_from_memory_with_format(png_bytes, image::ImageFormat::Png)

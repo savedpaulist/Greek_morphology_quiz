@@ -1269,7 +1269,7 @@ fn render_stems_screen(stem_view: Option<StemView>) -> Element {
                 div {
                     div { class: "eyebrow", "Word stems" }
                     h2 { class: "title", "{stem_view.lemma}" }
-                    // p { class: "subtle", "Paradigm tables are loaded directly from the new database rebuilt from common.db." }
+                    // p { class: "subtle", "Paradigm data is loaded from the shared exported snapshot." }
                 }
 
                 if let Some(stemtype_text) = stemtype_text {
@@ -1391,10 +1391,12 @@ impl AppState {
         Ok(state)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn get_stats_path() -> std::path::PathBuf {
         std::env::temp_dir().join("morph_app").join("stats.json")
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn load_stats_from_disk() -> SessionStats {
         if let Ok(data) = std::fs::read_to_string(Self::get_stats_path()) {
             serde_json::from_str(&data).unwrap_or_default()
@@ -1403,10 +1405,21 @@ impl AppState {
         }
     }
 
+    #[cfg(target_arch = "wasm32")]
+    fn load_stats_from_disk() -> SessionStats {
+        Self::load_from_storage("morph_app.stats").unwrap_or_default()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     fn save_stats_to_disk(&self) {
         if let Ok(data) = serde_json::to_string(&self.stats) {
             let _ = std::fs::write(Self::get_stats_path(), data);
         }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn save_stats_to_disk(&self) {
+        Self::save_to_storage("morph_app.stats", &self.stats);
     }
 
     fn reset_stats(&mut self) -> Result<()> {
@@ -1415,10 +1428,12 @@ impl AppState {
         Ok(())
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn get_presets_path() -> std::path::PathBuf {
         std::env::temp_dir().join("morph_app").join("presets.json")
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn load_presets_from_disk() -> std::collections::BTreeMap<String, FilterState> {
         if let Ok(data) = std::fs::read_to_string(Self::get_presets_path()) {
             serde_json::from_str(&data).unwrap_or_default()
@@ -1427,10 +1442,49 @@ impl AppState {
         }
     }
 
+    #[cfg(target_arch = "wasm32")]
+    fn load_presets_from_disk() -> std::collections::BTreeMap<String, FilterState> {
+        Self::load_from_storage("morph_app.presets").unwrap_or_default()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     fn save_presets_to_disk(&self) {
         if let Ok(data) = serde_json::to_string(&self.presets) {
             let _ = std::fs::write(Self::get_presets_path(), data);
         }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn save_presets_to_disk(&self) {
+        Self::save_to_storage("morph_app.presets", &self.presets);
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn load_from_storage<T>(key: &str) -> Option<T>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        let storage = web_sys::window()?.local_storage().ok()??;
+        let value = storage.get_item(key).ok()??;
+        serde_json::from_str(&value).ok()
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn save_to_storage<T>(key: &str, value: &T)
+    where
+        T: serde::Serialize,
+    {
+        let Some(storage) = web_sys::window()
+            .and_then(|window| window.local_storage().ok().flatten())
+        else {
+            return;
+        };
+
+        let Ok(serialized) = serde_json::to_string(value) else {
+            return;
+        };
+
+        let _ = storage.set_item(key, &serialized);
     }
 
     fn save_current_preset(&mut self) -> Result<()> {

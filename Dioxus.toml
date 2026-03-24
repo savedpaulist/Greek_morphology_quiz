@@ -1,6 +1,7 @@
 [application]
 name = "Λύπη"
 default_platform = "android"
+sub_package = "morph_app"
 
 [bundle]
 identifier = "com.morph.app"

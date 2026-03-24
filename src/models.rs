@@ -10,14 +10,14 @@ pub struct GrammarConstant {
     pub sort_order: i64,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FilterSection {
     pub key: String,
     pub title: String,
     pub options: Vec<GrammarConstant>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LemmaOption {
     pub id: i64,
     pub label: String,
@@ -53,12 +53,12 @@ impl FilterState {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct LemmaAttributes {
     pub by_category: HashMap<String, Vec<GrammarConstant>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct QuizRow {
     pub inflection_id: i64,
     pub lemma_id: i64,
@@ -119,20 +119,20 @@ impl Question {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StemTableRow {
     pub label: String,
     pub cells: Vec<String>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StemTable {
     pub heading: Vec<String>,
     pub columns: Vec<String>,
     pub rows: Vec<StemTableRow>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StemView {
     pub lemma: String,
     pub stemtypes: Vec<String>,
