@@ -2,12 +2,16 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ] # Срабатывает при пуше в main
+    branches: [ "main" ]
 
 permissions:
   contents: read
   pages: write
   id-token: write
+
+# Решаем проблему с Node.js 24 глобально
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-deploy:
@@ -15,16 +19,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install System Dependencies
+        # Это лечит "Exit code 2" при сборке dioxus-cli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
 
+      - name: Cache Cargo
+        # Чтобы не пересобирать всё с нуля каждый раз
+        uses: Swatinem/rust-cache@v2
+
       - name: Install Dioxus CLI
-        run: cargo install dioxus-cli
+        # Используем --locked для стабильности
+        run: cargo install dioxus-cli --locked
 
       - name: Build Web App
-        # Собираем проект под платформу web
         run: dx build --release --platform web
 
       - name: Setup Pages
@@ -33,7 +47,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # По умолчанию Dioxus собирает всё в папку dist
           path: 'dist'
 
       - name: Deploy to GitHub Pages
