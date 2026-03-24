@@ -1,0 +1,22 @@
+/target
+
+# macOS metadata
+.DS_Store
+
+# Local scratch/debug artifacts
+/derivatives_sample.txt
+/sample.txt
+/sample15.txt
+/schema.sql
+/fix_build.sh
+/fix_drawer.py
+/patch_models.py
+/patch_quiz.py
+/test.py
+/validate.py
+/validate2.py
+/validate3.py
+/sqlite3
+
+# Large local reference data not used by the app build
+/gr-en.dictionary.SQLite3
